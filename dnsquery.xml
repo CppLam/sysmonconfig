@@ -1,0 +1,47 @@
+<!-- Sysmon Config                                                              -->
+<!-- 简介：Sysmon配置文件（检测用）                                             -->
+<!-- 版本：1.0.0                                                                -->
+<!-- 时间：2022.08.01                                                           -->
+<!-- 创建者：linx2                                                              -->
+<!-- 参考Sysmon-modular项目：https://github.com/olafhartong/sysmon-modular/wiki -->
+
+<Sysmon schemaversion="4.60">
+  <HashAlgorithms>*</HashAlgorithms>
+
+  <!-- Disables lookup behavior, default is True (Boolean) -->
+  <ArchiveDirectory>Sysmon</ArchiveDirectory>
+
+  <EventFiltering>
+    <!-- SYSMON EVENT ID 1 : DNS Queries-->
+		<RuleGroup name="RG=Process Create Exclude Group" groupRelation="or">
+		<ProcessCreate onmatch="exclude">
+			<Rule name="exclude werfault from wmi" groupRelation="and">
+				<Image condition="begin with">C:\</Image>
+			</Rule>
+		</ProcessCreate>
+	</RuleGroup>
+<!-- Event ID 3 == Network Connection - Includes -->
+    <RuleGroup groupRelation="or">
+      <NetworkConnect onmatch="include">
+		<DestinationPort name="Suspicious Ports" condition="is">445</DestinationPort>
+		<DestinationPort name="Suspicious Ports" condition="is">21</DestinationPort>
+		<DestinationPort name="Suspicious Ports" condition="is">137</DestinationPort>
+<DestinationPort name="Suspicious Ports" condition="is">8080</DestinationPort>
+  </NetworkConnect>
+</RuleGroup>
+    <!--SYSMON EVENT ID 5 : PROCESS ENDED-->
+ 		<RuleGroup name="RG=ProcessTerminate Exclude Group" groupRelation="or">
+			<ProcessTerminate onmatch="exclude">
+			<Image condition="begin with">C:\</Image>
+		</ProcessTerminate>
+	</RuleGroup>
+    <!-- SYSMON EVENT ID 22 : DNS Queries-->
+	<RuleGroup name="RG=DNS Query Includes" groupRelation="or">
+		<DnsQuery onmatch="include">
+    			<Rule name="Attack=T1048,Technique=Exfiltration Over Alternative Protocol,Tactic=Exfiltration,Level=0,Desc=lookup" groupRelation="and">
+				<QueryName name="Level=0,Desc=Click TLD DNS Query" condition="end with">.wangsu.com</QueryName>
+			</Rule>
+		</DnsQuery>
+	</RuleGroup>
+  </EventFiltering>
+</Sysmon>
